@@ -389,6 +389,7 @@
   <div class="thanks-title">Obrigado!</div>
   <div class="thanks-sub">Os teus dados foram registados.<br><strong>Até já no AmazinGym!</strong></div>
   <div class="thanks-prize-recap" id="thanks-recap"></div>
+  <div id="thanks-offer-id" style="font-size:.75rem;font-weight:700;letter-spacing:3px;color:#FF0000;margin-top:8px;"></div>
   <button class="btn-reset" onclick="resetApp()">PRÓXIMO PARTICIPANTE</button>
 </div>
 
@@ -526,6 +527,7 @@ function prizeAngle(prize) {
 
 function startSpin() {
   if (spinning) return;
+  if (wonPrize) return;
   spinning = true;
   document.getElementById('spin-btn').classList.add('spinning');
   canvas.classList.add('spinning-anim');
@@ -624,10 +626,13 @@ async function submitLead() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ timestamp, name, phone, email, prize: wonPrize.name, brand: wonPrize.brand })
     });
+    const result = await res.json();
+    if (res.status === 409) { setStatus('Este contacto já participou na promoção.', 'error'); btn.disabled = false; return; }
     if (!res.ok) throw new Error('Erro ' + res.status);
     leadsCount++;
     updateLeadCount();
     document.getElementById('thanks-recap').textContent = wonPrize.icon + '  ' + wonPrize.name;
+    document.getElementById('thanks-offer-id').textContent = 'ID: ' + (result.offerId || '');
     showScreen('screen-thanks');
   } catch(e) {
     setStatus('Erro de ligação. Tenta novamente.', 'error');
